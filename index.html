@@ -3,52 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern Yakıt Hesaplayıcı</title>
+    <title>Yakıt Hesaplayıcı</title>
+    <link rel="manifest" href="manifest.json">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body {
-            background-color: #0a0a0a;
-            color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            justify-content: center;
-            padding: 20px;
-        }
-        .container {
-            width: 100%;
-            max-width: 500px;
-            background: #1a1a1a;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 0 20px rgba(255, 255, 0, 0.2);
-            border: 1px solid #333;
-        }
-        h2 { text-align: center; color: #ffeb3b; margin-bottom: 25px; }
-        .input-group {
-            margin-bottom: 20px;
-            background: #252525;
-            padding: 15px;
-            border-radius: 10px;
-            border-left: 4px solid #ffeb3b;
-        }
-        label { display: block; margin-bottom: 8px; color: #ccc; font-size: 0.9em; }
-        input {
-            width: 100%;
-            padding: 10px;
-            background: #000;
-            border: 1px solid #444;
-            color: #ffeb3b;
-            font-size: 1.2em;
-            border-radius: 5px;
-            box-sizing: border-box;
-        }
-        .result-group {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 10px;
-            font-size: 1.1em;
-        }
-        .result-value { color: #4caf50; font-weight: bold; }
-        hr { border: 0; border-top: 1px solid #333; margin: 20px 0; }
+        body { background: #0a0a0a; color: #fff; font-family: sans-serif; display: flex; justify-content: center; padding: 20px; }
+        .container { width: 100%; max-width: 500px; background: #1a1a1a; padding: 25px; border-radius: 15px; border: 1px solid #333; }
+        h2 { text-align: center; color: #ffeb3b; }
+        .input-group { margin-bottom: 15px; background: #252525; padding: 15px; border-radius: 10px; border-left: 4px solid #ffeb3b; }
+        label { display: block; margin-bottom: 5px; color: #ccc; font-size: 0.85em; }
+        input { width: 100%; padding: 10px; background: #000; border: 1px solid #444; color: #ffeb3b; font-size: 1.2em; border-radius: 5px; box-sizing: border-box; }
+        .sonuc { text-align: center; font-size: 1.5em; color: #4caf50; font-weight: bold; margin: 20px 0; padding: 15px; border: 1px solid #444; border-radius: 10px; }
+        button { width: 100%; padding: 12px; background: #ffeb3b; color: #000; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 1em; }
+        button:hover { background: #d4c100; }
+        canvas { margin-top: 20px; background: #000; padding: 10px; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -57,52 +25,73 @@
     <h2>⛽ Yakıt Hesaplayıcı</h2>
     
     <div class="input-group">
-        <label>100 Km'de Yakılan (Litre)</label>
-        <input type="number" id="yuzKmTuketim" value="0" oninput="hesapla()">
+        <label>100 Km'de Tüketim (Litre)</label>
+        <input type="number" id="yuzKmTuketim" oninput="hesapla()">
     </div>
-
     <div class="input-group">
-        <label>Yakıt Birim Fiyatı (TL)</label>
-        <input type="number" id="birimFiyat" value="0" oninput="hesapla()">
+        <label>Birim Fiyat (TL)</label>
+        <input type="number" id="birimFiyat" oninput="hesapla()">
     </div>
-
     <div class="input-group">
-        <label>Gidilecek Mesafe (Km)</label>
-        <input type="number" id="gidilecekKm" value="100" oninput="hesapla()">
+        <label>Gidilecek KM</label>
+        <input type="number" id="gidilecekKm" oninput="hesapla()">
     </div>
 
-    <hr>
+    <div class="sonuc" id="sonucMetni">Toplam: -</div>
+    <button onclick="kopyala()">Sonucu Kopyala</button>
 
-    <div class="result-group">
-        <span>1 Km Yakılan Tutar:</span>
-        <span class="result-value" id="birKmFiyat">-</span>
-    </div>
-    <div class="result-group">
-        <span>100 Km Toplam Tutar:</span>
-        <span class="result-value" id="yuzKmFiyat">-</span>
-    </div>
-    <div class="result-group" style="font-size: 1.3em; margin-top: 15px; color: #fff;">
-        <span>Toplam Masraf:</span>
-        <span class="result-value" id="toplamFiyat">-</span>
-    </div>
+    <canvas id="yakitGrafik"></canvas>
 </div>
 
 <script>
+    let myChart;
+
     function hesapla() {
-        const yuzKmTuketim = parseFloat(document.getElementById('yuzKmTuketim').value) || 0;
-        const birimFiyat = parseFloat(document.getElementById('birimFiyat').value) || 0;
-        const gidilecekKm = parseFloat(document.getElementById('gidilecekKm').value) || 0;
+        const yuzKm = parseFloat(document.getElementById('yuzKmTuketim').value) || 0;
+        const fiyat = parseFloat(document.getElementById('birimFiyat').value) || 0;
+        const km = parseFloat(document.getElementById('gidilecekKm').value) || 0;
 
-        const birKmFiyat = (yuzKmTuketim * birimFiyat) / 100;
-        const yuzKmFiyat = yuzKmTuketim * birimFiyat;
-        const toplamFiyat = (gidilecekKm / 100) * yuzKmFiyat;
+        // Verileri hafızaya al
+        localStorage.setItem('yuzKm', yuzKm);
+        localStorage.setItem('fiyat', fiyat);
+        localStorage.setItem('km', km);
 
-        document.getElementById('birKmFiyat').innerText = birKmFiyat.toFixed(2) + " TL";
-        document.getElementById('yuzKmFiyat').innerText = yuzKmFiyat.toFixed(2) + " TL";
-        document.getElementById('toplamFiyat').innerText = toplamFiyat.toFixed(2) + " TL";
+        const toplam = (km / 100) * (yuzKm * fiyat);
+        document.getElementById('sonucMetni').innerText = "Toplam: " + toplam.toFixed(2) + " TL";
+        
+        cizGrafik(yuzKm, fiyat);
     }
-    window.onload = hesapla;
-</script>
 
+    function cizGrafik(yuzKm, fiyat) {
+        const ctx = document.getElementById('yakitGrafik').getContext('2d');
+        if(myChart) myChart.destroy();
+        
+        myChart = new Chart(ctx, {
+            type: 'line',
+            data: { 
+                labels: ['0km', '200km', '500km', '800km'], 
+                datasets: [{ 
+                    label: 'Maliyet (TL)', 
+                    data: [0, (200/100)*(yuzKm*fiyat), (500/100)*(yuzKm*fiyat), (800/100)*(yuzKm*fiyat)], 
+                    borderColor: '#ffeb3b', 
+                    backgroundColor: 'rgba(255, 235, 59, 0.1)', 
+                    fill: true 
+                }] 
+            }
+        });
+    }
+
+    function kopyala() {
+        navigator.clipboard.writeText(document.getElementById('sonucMetni').innerText);
+        alert("Sonuç panoya kopyalandı!");
+    }
+
+    window.onload = () => {
+        document.getElementById('yuzKmTuketim').value = localStorage.getItem('yuzKm') || 0;
+        document.getElementById('birimFiyat').value = localStorage.getItem('fiyat') || 0;
+        document.getElementById('gidilecekKm').value = localStorage.getItem('km') || 100;
+        hesapla();
+    };
+</script>
 </body>
 </html>
