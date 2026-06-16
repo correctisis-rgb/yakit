@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yakıt Hesaplayıcı</title>
+    <title>Pro Yakıt Hesaplayıcı</title>
     <link rel="manifest" href="manifest.json">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -16,7 +16,9 @@
         .sonuc-kutusu { margin-top: 20px; padding: 15px; background: #000; border-radius: 10px; border: 1px solid #444; }
         .sonuc-satiri { display: flex; justify-content: space-between; margin-bottom: 10px; color: #fff; }
         .deger { color: #4caf50; font-weight: bold; }
-        button { width: 100%; padding: 12px; background: #ffeb3b; color: #000; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        button { width: 100%; padding: 12px; background: #ffeb3b; color: #000; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 1em; }
+        button:hover { background: #d4c100; }
+        #btnInstall { display: none; background: #4caf50; color: #fff; }
         canvas { margin-top: 20px; background: #000; padding: 10px; border-radius: 10px; }
     </style>
 </head>
@@ -47,11 +49,32 @@
     </div>
     
     <button onclick="kopyala()">Sonuçları Kopyala</button>
+    <button id="btnInstall" onclick="installApp()">Uygulamayı Ana Ekrana Ekle</button>
     <canvas id="yakitGrafik"></canvas>
 </div>
 
 <script>
     let myChart;
+    let deferredPrompt;
+
+    // PWA Kurulum Butonu Mantığı
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        document.getElementById('btnInstall').style.display = 'block';
+    });
+
+    function installApp() {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    document.getElementById('btnInstall').style.display = 'none';
+                }
+                deferredPrompt = null;
+            });
+        }
+    }
 
     function hesapla() {
         const yuzKm = parseFloat(document.getElementById('yuzKmTuketim').value) || 0;
@@ -78,14 +101,14 @@
         if(myChart) myChart.destroy();
         myChart = new Chart(ctx, {
             type: 'line',
-            data: { labels: ['0km', '200km', '500km', '800km'], datasets: [{ label: 'Maliyet (TL)', data: [0, 2*(yuzKm*fiyat), 5*(yuzKm*fiyat), 8*(yuzKm*fiyat)], borderColor: '#ffeb3b', fill: true }] }
+            data: { labels: ['0km', '200km', '500km', '800km'], datasets: [{ label: 'Maliyet (TL)', data: [0, 2*(yuzKm*fiyat), 5*(yuzKm*fiyat), 8*(yuzKm*fiyat)], borderColor: '#ffeb3b', backgroundColor: 'rgba(255, 235, 59, 0.1)', fill: true }] },
+            options: { responsive: true }
         });
     }
 
     function kopyala() {
         const metin = `1 KM: ${document.getElementById('birKmSonuc').innerText}\n100 KM: ${document.getElementById('yuzKmSonuc').innerText}\nToplam: ${document.getElementById('toplamSonuc').innerText}`;
-        navigator.clipboard.writeText(metin);
-        alert("Sonuçlar kopyalandı!");
+        navigator.clipboard.writeText(metin).then(() => alert("Sonuçlar panoya kopyalandı!"));
     }
 
     window.onload = () => {
