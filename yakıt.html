@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Yakıt Hesaplayıcı</title>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: #1a1a1a;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(255, 255, 0, 0.2);
+            border: 1px solid #333;
+        }
+        h2 { text-align: center; color: #ffeb3b; margin-bottom: 25px; }
+        .input-group {
+            margin-bottom: 20px;
+            background: #252525;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #ffeb3b;
+        }
+        label { display: block; margin-bottom: 8px; color: #ccc; font-size: 0.9em; }
+        input {
+            width: 100%;
+            padding: 10px;
+            background: #000;
+            border: 1px solid #444;
+            color: #ffeb3b;
+            font-size: 1.2em;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        .result-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 1.1em;
+        }
+        .result-value { color: #4caf50; font-weight: bold; }
+        hr { border: 0; border-top: 1px solid #333; margin: 20px 0; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>⛽ Yakıt Hesaplayıcı</h2>
+    
+    <div class="input-group">
+        <label>100 Km'de Yakılan (Litre)</label>
+        <input type="number" id="yuzKmTuketim" value="6.7" oninput="hesapla()">
+    </div>
+
+    <div class="input-group">
+        <label>Motorin Birim Fiyatı (TL)</label>
+        <input type="number" id="birimFiyat" value="66" oninput="hesapla()">
+    </div>
+
+    <div class="input-group">
+        <label>Gidilecek Mesafe (Km)</label>
+        <input type="number" id="gidilecekKm" value="800" oninput="hesapla()">
+    </div>
+
+    <hr>
+
+    <div class="result-group">
+        <span>1 Km Yakılan Tutar:</span>
+        <span class="result-value" id="birKmFiyat">-</span>
+    </div>
+    <div class="result-group">
+        <span>100 Km Toplam Tutar:</span>
+        <span class="result-value" id="yuzKmFiyat">-</span>
+    </div>
+    <div class="result-group" style="font-size: 1.3em; margin-top: 15px; color: #fff;">
+        <span>Toplam Masraf:</span>
+        <span class="result-value" id="toplamFiyat">-</span>
+    </div>
+</div>
+
+<script>
+    function hesapla() {
+        const yuzKmTuketim = parseFloat(document.getElementById('yuzKmTuketim').value) || 0;
+        const birimFiyat = parseFloat(document.getElementById('birimFiyat').value) || 0;
+        const gidilecekKm = parseFloat(document.getElementById('gidilecekKm').value) || 0;
+
+        const birKmFiyat = (yuzKmTuketim * birimFiyat) / 100;
+        const yuzKmFiyat = yuzKmTuketim * birimFiyat;
+        const toplamFiyat = (gidilecekKm / 100) * yuzKmFiyat;
+
+        document.getElementById('birKmFiyat').innerText = birKmFiyat.toFixed(2) + " TL";
+        document.getElementById('yuzKmFiyat').innerText = yuzKmFiyat.toFixed(2) + " TL";
+        document.getElementById('toplamFiyat').innerText = toplamFiyat.toFixed(2) + " TL";
+    }
+    window.onload = hesapla;
+</script>
+
+</body>
+</html>
