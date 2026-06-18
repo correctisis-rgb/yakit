@@ -13,6 +13,7 @@
         .input-group { margin-bottom: 15px; background: #252525; padding: 15px; border-radius: 10px; border-left: 4px solid #ffeb3b; }
         label { display: block; margin-bottom: 5px; color: #ccc; font-size: 0.85em; }
         input { width: 100%; padding: 10px; background: #000; border: 1px solid #444; color: #ffeb3b; font-size: 1.2em; border-radius: 5px; box-sizing: border-box; }
+        .checkbox-group { margin: 10px 0; display: flex; align-items: center; gap: 8px; color: #fff; font-size: 0.9em; cursor: pointer; }
         .sonuc-kutusu { margin-top: 20px; padding: 15px; background: #000; border-radius: 10px; border: 1px solid #444; }
         .sonuc-satiri { display: flex; justify-content: space-between; margin-bottom: 10px; color: #fff; }
         .deger { color: #4caf50; font-weight: bold; }
@@ -41,6 +42,9 @@
     <div class="input-group">
         <label>Gidilecek KM</label>
         <input type="number" id="gidilecekKm" oninput="hesapla()">
+        <label class="checkbox-group">
+            <input type="checkbox" id="gidisDonus" onchange="hesapla()" style="width: auto;"> Gidiş-Dönüş (KM x 2)
+        </label>
     </div>
 
     <div class="sonuc-kutusu">
@@ -76,7 +80,6 @@
     }
 
     function git(boyut) {
-        // Linklerini buraya kendi Shopier ürün linklerinle değiştir
         const linkler = {
             'KUCUK': 'https://www.shopier.com/bikahveismarlaa/48102373',
             'ORTA': 'https://www.shopier.com/bikahveismarlaa/48099937',
@@ -104,28 +107,45 @@
     function hesapla() {
         const yuzKm = parseFloat(document.getElementById('yuzKmTuketim').value) || 0;
         const fiyat = parseFloat(document.getElementById('birimFiyat').value) || 0;
-        const km = parseFloat(document.getElementById('gidilecekKm').value) || 0;
+        let km = parseFloat(document.getElementById('gidilecekKm').value) || 0;
+        const gidisDonus = document.getElementById('gidisDonus').checked;
+
+        // Gidiş-Dönüş işaretliyse toplam KM'yi ikiyle çarpıyoruz
+        const hesapKm = gidisDonus ? km * 2 : km;
 
         localStorage.setItem('yuzKm', yuzKm);
         localStorage.setItem('fiyat', fiyat);
         localStorage.setItem('km', km);
+        localStorage.setItem('gidisDonus', gidisDonus);
 
         const birKmFiyat = (yuzKm * fiyat) / 100;
         const yuzKmFiyat = yuzKm * fiyat;
-        const toplamFiyat = (km / 100) * (yuzKm * fiyat);
+        const toplamFiyat = (hesapKm / 100) * (yuzKm * fiyat);
 
         document.getElementById('birKmSonuc').innerText = birKmFiyat.toFixed(2) + " TL";
         document.getElementById('yuzKmSonuc').innerText = yuzKmFiyat.toFixed(2) + " TL";
         document.getElementById('toplamSonuc').innerText = toplamFiyat.toFixed(2) + " TL";
-        cizGrafik(yuzKm, fiyat);
+        
+        cizGrafik(yuzKm, fiyat, gidisDonus);
     }
 
-    function cizGrafik(yuzKm, fiyat) {
+    function cizGrafik(yuzKm, fiyat, gidisDonus) {
         const ctx = document.getElementById('yakitGrafik').getContext('2d');
         if(myChart) myChart.destroy();
+        
+        const carp = gidisDonus ? 2 : 1;
         myChart = new Chart(ctx, {
             type: 'line',
-            data: { labels: ['0km', '200km', '500km', '800km'], datasets: [{ label: 'Maliyet (TL)', data: [0, 2*(yuzKm*fiyat), 5*(yuzKm*fiyat), 8*(yuzKm*fiyat)], borderColor: '#ffeb3b', backgroundColor: 'rgba(255, 235, 59, 0.1)', fill: true }] },
+            data: { 
+                labels: ['0km', '200km', '500km', '800km'], 
+                datasets: [{ 
+                    label: 'Maliyet (TL)', 
+                    data: [0, (200*carp/100)*(yuzKm*fiyat), (500*carp/100)*(yuzKm*fiyat), (800*carp/100)*(yuzKm*fiyat)], 
+                    borderColor: '#ffeb3b', 
+                    backgroundColor: 'rgba(255, 235, 59, 0.1)', 
+                    fill: true 
+                }] 
+            },
             options: { responsive: true }
         });
     }
@@ -139,6 +159,7 @@
         document.getElementById('yuzKmTuketim').value = localStorage.getItem('yuzKm') || 0;
         document.getElementById('birimFiyat').value = localStorage.getItem('fiyat') || 0;
         document.getElementById('gidilecekKm').value = localStorage.getItem('km') || 100;
+        document.getElementById('gidisDonus').checked = localStorage.getItem('gidisDonus') === 'true';
         hesapla();
     };
 </script>
