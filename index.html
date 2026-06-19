@@ -10,6 +10,10 @@
         body { background: #0a0a0a; color: #fff; font-family: sans-serif; display: flex; justify-content: center; padding: 20px; }
         .container { width: 100%; max-width: 500px; background: #1a1a1a; padding: 25px; border-radius: 15px; border: 1px solid #333; }
         h2 { text-align: center; color: #ffeb3b; }
+        /* Yeni Rota Butonu Stili */
+        .rota-btn { background: #2196f3; color: white; margin-bottom: 20px; text-decoration: none; display: block; text-align: center; padding: 12px; border-radius: 5px; font-weight: bold; }
+        .rota-btn:hover { background: #1976d2; }
+        
         .input-group { margin-bottom: 15px; background: #252525; padding: 15px; border-radius: 10px; border-left: 4px solid #ffeb3b; }
         label { display: block; margin-bottom: 5px; color: #ccc; font-size: 0.85em; }
         input { width: 100%; padding: 10px; background: #000; border: 1px solid #444; color: #ffeb3b; font-size: 1.2em; border-radius: 5px; box-sizing: border-box; }
@@ -30,6 +34,8 @@
 
 <div class="container">
     <h2>⛽ Yakıt Hesaplayıcı</h2>
+    
+    <a href="https://www.google.com/maps/dir//" target="_blank" class="rota-btn">🗺️ Rota Planla</a>
     
     <div class="input-group">
         <label>100 Km'de Tüketim (Litre)</label>
@@ -58,7 +64,6 @@
     <div class="destek-kutusu">
         <button id="btnAc" onclick="destekGoster()" style="background: #e91e63; color: white;">☕ Bi Kahve Ismarla</button>
         <div id="secenekler" class="secenekler">
-            <p style="font-size: 0.8em; color: #aaa;">Kahve boyutunu seç:</p>
             <button onclick="git('KUCUK')">Küçük Boy</button>
             <button onclick="git('ORTA')">Orta Boy</button>
             <button onclick="git('BUYUK')">Büyük Boy</button>
@@ -110,7 +115,6 @@
         let km = parseFloat(document.getElementById('gidilecekKm').value) || 0;
         const gidisDonus = document.getElementById('gidisDonus').checked;
 
-        // Gidiş-Dönüş işaretliyse toplam KM'yi ikiyle çarpıyoruz
         const hesapKm = gidisDonus ? km * 2 : km;
 
         localStorage.setItem('yuzKm', yuzKm);
