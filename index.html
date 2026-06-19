@@ -5,15 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pro Yakıt Hesaplayıcı</title>
     <link rel="manifest" href="manifest.json">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { background: #0a0a0a; color: #fff; font-family: sans-serif; display: flex; justify-content: center; padding: 20px; }
         .container { width: 100%; max-width: 500px; background: #1a1a1a; padding: 25px; border-radius: 15px; border: 1px solid #333; }
         h2 { text-align: center; color: #ffeb3b; }
-        /* Yeni Rota Butonu Stili */
         .rota-btn { background: #2196f3; color: white; margin-bottom: 20px; text-decoration: none; display: block; text-align: center; padding: 12px; border-radius: 5px; font-weight: bold; }
         .rota-btn:hover { background: #1976d2; }
-        
         .input-group { margin-bottom: 15px; background: #252525; padding: 15px; border-radius: 10px; border-left: 4px solid #ffeb3b; }
         label { display: block; margin-bottom: 5px; color: #ccc; font-size: 0.85em; }
         input { width: 100%; padding: 10px; background: #000; border: 1px solid #444; color: #ffeb3b; font-size: 1.2em; border-radius: 5px; box-sizing: border-box; }
@@ -21,21 +18,20 @@
         .sonuc-kutusu { margin-top: 20px; padding: 15px; background: #000; border-radius: 10px; border: 1px solid #444; }
         .sonuc-satiri { display: flex; justify-content: space-between; margin-bottom: 10px; color: #fff; }
         .deger { color: #4caf50; font-weight: bold; }
+        .sure-bilgi { font-size: 0.85em; color: #ffeb3b; margin-top: 5px; font-style: italic; }
         button { width: 100%; padding: 12px; background: #ffeb3b; color: #000; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 1em; }
         button:hover { background: #d4c100; }
         #btnInstall { display: none; background: #4caf50; color: #fff; }
         .destek-kutusu { margin-top: 25px; padding: 20px; border-top: 1px solid #333; text-align: center; }
         .secenekler { display: none; margin-top: 15px; }
         .secenekler button { width: auto; padding: 10px 15px; margin: 0 5px; background: #333; color: white; font-size: 0.9em; }
-        canvas { margin-top: 20px; background: #000; padding: 10px; border-radius: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h2>⛽ Yakıt Hesaplayıcı</h2>
-    
-    <a href="https://www.google.com/maps/dir//" target="_blank" class="rota-btn">🗺️ Rota Planla</a>
+    <a href="https://www.google.com/maps" target="_blank" class="rota-btn">🗺️ Rota Planla (Google Maps)</a>
     
     <div class="input-group">
         <label>100 Km'de Tüketim (Litre)</label>
@@ -51,6 +47,7 @@
         <label class="checkbox-group">
             <input type="checkbox" id="gidisDonus" onchange="hesapla()" style="width: auto;"> Gidiş-Dönüş Hesapla
         </label>
+        <div id="sureSonuc" class="sure-bilgi">Tahmini süre: -</div>
     </div>
 
     <div class="sonuc-kutusu">
@@ -72,25 +69,61 @@
 
     <button onclick="kopyala()">Sonuçları Kopyala</button>
     <button id="btnInstall" onclick="installApp()">Uygulamayı Ana Ekrana Ekle</button>
-    <canvas id="yakitGrafik"></canvas>
 </div>
 
 <script>
-    let myChart;
     let deferredPrompt;
 
-    function destekGoster() {
-        document.getElementById('secenekler').style.display = 'block';
-        document.getElementById('btnAc').style.display = 'none';
+    function formatSure(saat) {
+        const h = Math.floor(saat);
+        const m = Math.round((saat - h) * 60);
+        return `${h} saat ${m} dk`;
     }
 
-    function git(boyut) {
+    function hesapla() {
+        const yuzKm = parseFloat(document.getElementById('yuzKmTuketim').value) || 0;
+        const fiyat = parseFloat(document.getElementById('birimFiyat').value) || 0;
+        let km = parseFloat(document.getElementById('gidilecekKm').value) || 0;
+        const gidisDonus = document.getElementById('gidisDonus').checked;
+
+        const hesapKm = gidisDonus ? km * 2 : km;
+
+        if (hesapKm > 0) {
+            const sure80 = hesapKm / 80;
+            const sure90 = hesapKm / 90;
+            document.getElementById('sureSonuc').innerText = 
+                `Tahmini süre: 80km/s ile ${formatSure(sure80)} - 90km/s ile ${formatSure(sure90)}`;
+        } else {
+            document.getElementById('sureSonuc').innerText = "Tahmini süre: -";
+        }
+
+        const birKmFiyat = (yuzKm * fiyat) / 100;
+        const yuzKmFiyat = yuzKm * fiyat;
+        const toplamFiyat = (hesapKm / 100) * (yuzKm * fiyat);
+
+        document.getElementById('birKmSonuc').innerText = birKmFiyat.toFixed(2) + " TL";
+        document.getElementById('yuzKmSonuc').innerText = yuzKmFiyat.toFixed(2) + " TL";
+        document.getElementById('toplamSonuc').innerText = toplamFiyat.toFixed(2) + " TL";
+    }
+
+    function destekGoster() { 
+        document.getElementById('secenekler').style.display = 'block'; 
+        document.getElementById('btnAc').style.display = 'none'; 
+    }
+
+    function git(boyut) { 
         const linkler = {
             'KUCUK': 'https://www.shopier.com/bikahveismarlaa/48102373',
             'ORTA': 'https://www.shopier.com/bikahveismarlaa/48099937',
             'BUYUK': 'https://www.shopier.com/bikahveismarlaa/48102387'
         };
-        window.open(linkler[boyut], '_blank');
+        window.open(linkler[boyut], '_blank'); 
+    }
+
+    function kopyala() { 
+        const sure = document.getElementById('sureSonuc').innerText;
+        const metin = `Toplam: ${document.getElementById('toplamSonuc').innerText}\n${sure}`; 
+        navigator.clipboard.writeText(metin).then(() => alert("Sonuçlar kopyalandı!")); 
     }
 
     window.addEventListener('beforeinstallprompt', (e) => {
@@ -102,70 +135,12 @@
     function installApp() {
         if (deferredPrompt) {
             deferredPrompt.prompt();
-            deferredPrompt.userChoice.then((choiceResult) => {
-                if (choiceResult.outcome === 'accepted') document.getElementById('btnInstall').style.display = 'none';
+            deferredPrompt.userChoice.then((r) => {
+                if (r.outcome === 'accepted') document.getElementById('btnInstall').style.display = 'none';
                 deferredPrompt = null;
             });
         }
     }
-
-    function hesapla() {
-        const yuzKm = parseFloat(document.getElementById('yuzKmTuketim').value) || 0;
-        const fiyat = parseFloat(document.getElementById('birimFiyat').value) || 0;
-        let km = parseFloat(document.getElementById('gidilecekKm').value) || 0;
-        const gidisDonus = document.getElementById('gidisDonus').checked;
-
-        const hesapKm = gidisDonus ? km * 2 : km;
-
-        localStorage.setItem('yuzKm', yuzKm);
-        localStorage.setItem('fiyat', fiyat);
-        localStorage.setItem('km', km);
-        localStorage.setItem('gidisDonus', gidisDonus);
-
-        const birKmFiyat = (yuzKm * fiyat) / 100;
-        const yuzKmFiyat = yuzKm * fiyat;
-        const toplamFiyat = (hesapKm / 100) * (yuzKm * fiyat);
-
-        document.getElementById('birKmSonuc').innerText = birKmFiyat.toFixed(2) + " TL";
-        document.getElementById('yuzKmSonuc').innerText = yuzKmFiyat.toFixed(2) + " TL";
-        document.getElementById('toplamSonuc').innerText = toplamFiyat.toFixed(2) + " TL";
-        
-        cizGrafik(yuzKm, fiyat, gidisDonus);
-    }
-
-    function cizGrafik(yuzKm, fiyat, gidisDonus) {
-        const ctx = document.getElementById('yakitGrafik').getContext('2d');
-        if(myChart) myChart.destroy();
-        
-        const carp = gidisDonus ? 2 : 1;
-        myChart = new Chart(ctx, {
-            type: 'line',
-            data: { 
-                labels: ['0km', '200km', '500km', '800km'], 
-                datasets: [{ 
-                    label: 'Maliyet (TL)', 
-                    data: [0, (200*carp/100)*(yuzKm*fiyat), (500*carp/100)*(yuzKm*fiyat), (800*carp/100)*(yuzKm*fiyat)], 
-                    borderColor: '#ffeb3b', 
-                    backgroundColor: 'rgba(255, 235, 59, 0.1)', 
-                    fill: true 
-                }] 
-            },
-            options: { responsive: true }
-        });
-    }
-
-    function kopyala() {
-        const metin = `1 KM: ${document.getElementById('birKmSonuc').innerText}\n100 KM: ${document.getElementById('yuzKmSonuc').innerText}\nToplam: ${document.getElementById('toplamSonuc').innerText}`;
-        navigator.clipboard.writeText(metin).then(() => alert("Sonuçlar panoya kopyalandı!"));
-    }
-
-    window.onload = () => {
-        document.getElementById('yuzKmTuketim').value = localStorage.getItem('yuzKm') || 0;
-        document.getElementById('birimFiyat').value = localStorage.getItem('fiyat') || 0;
-        document.getElementById('gidilecekKm').value = localStorage.getItem('km') || 100;
-        document.getElementById('gidisDonus').checked = localStorage.getItem('gidisDonus') === 'true';
-        hesapla();
-    };
 </script>
 </body>
 </html>
