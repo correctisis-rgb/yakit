@@ -19,6 +19,7 @@
         .sonuc-satiri { display: flex; justify-content: space-between; margin-bottom: 10px; color: #fff; }
         .deger { color: #4caf50; font-weight: bold; }
         .sure-bilgi { font-size: 0.85em; color: #ffeb3b; margin-top: 5px; font-style: italic; }
+        .uyari { font-size: 0.75em; color: #f44336; margin-top: 5px; font-weight: bold; }
         button { width: 100%; padding: 12px; background: #ffeb3b; color: #000; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 1em; }
         button:hover { background: #d4c100; }
         #btnInstall { display: none; background: #4caf50; color: #fff; }
@@ -48,6 +49,7 @@
             <input type="checkbox" id="gidisDonus" onchange="hesapla()" style="width: auto;"> Gidiş-Dönüş Hesapla
         </label>
         <div id="sureSonuc" class="sure-bilgi">Tahmini süre: -</div>
+        <div class="uyari">⚠️ Trafik durumuna göre değerler değişkenlik gösterebilir.</div>
     </div>
 
     <div class="sonuc-kutusu">
@@ -74,7 +76,6 @@
 <script>
     let deferredPrompt;
 
-    // Sayfa tamamen yüklendiğinde verileri geri yükle
     window.addEventListener('DOMContentLoaded', () => {
         document.getElementById('yuzKmTuketim').value = localStorage.getItem('yuzKmTuketim') || '';
         document.getElementById('birimFiyat').value = localStorage.getItem('birimFiyat') || '';
@@ -95,13 +96,11 @@
         const kmEl = document.getElementById('gidilecekKm');
         const gidisDonusEl = document.getElementById('gidisDonus');
 
-        // Değerleri al
         const yuzKm = parseFloat(yuzKmEl.value) || 0;
         const fiyat = parseFloat(fiyatEl.value) || 0;
         const km = parseFloat(kmEl.value) || 0;
         const gidisDonus = gidisDonusEl.checked;
 
-        // Verileri hafızaya kaydet
         localStorage.setItem('yuzKmTuketim', yuzKmEl.value);
         localStorage.setItem('birimFiyat', fiyatEl.value);
         localStorage.setItem('gidilecekKm', kmEl.value);
