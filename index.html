@@ -74,6 +74,15 @@
 <script>
     let deferredPrompt;
 
+    // Sayfa tamamen yüklendiğinde verileri geri yükle
+    window.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('yuzKmTuketim').value = localStorage.getItem('yuzKmTuketim') || '';
+        document.getElementById('birimFiyat').value = localStorage.getItem('birimFiyat') || '';
+        document.getElementById('gidilecekKm').value = localStorage.getItem('gidilecekKm') || '';
+        document.getElementById('gidisDonus').checked = localStorage.getItem('gidisDonus') === 'true';
+        hesapla();
+    });
+
     function formatSure(saat) {
         const h = Math.floor(saat);
         const m = Math.round((saat - h) * 60);
@@ -81,10 +90,22 @@
     }
 
     function hesapla() {
-        const yuzKm = parseFloat(document.getElementById('yuzKmTuketim').value) || 0;
-        const fiyat = parseFloat(document.getElementById('birimFiyat').value) || 0;
-        let km = parseFloat(document.getElementById('gidilecekKm').value) || 0;
-        const gidisDonus = document.getElementById('gidisDonus').checked;
+        const yuzKmEl = document.getElementById('yuzKmTuketim');
+        const fiyatEl = document.getElementById('birimFiyat');
+        const kmEl = document.getElementById('gidilecekKm');
+        const gidisDonusEl = document.getElementById('gidisDonus');
+
+        // Değerleri al
+        const yuzKm = parseFloat(yuzKmEl.value) || 0;
+        const fiyat = parseFloat(fiyatEl.value) || 0;
+        const km = parseFloat(kmEl.value) || 0;
+        const gidisDonus = gidisDonusEl.checked;
+
+        // Verileri hafızaya kaydet
+        localStorage.setItem('yuzKmTuketim', yuzKmEl.value);
+        localStorage.setItem('birimFiyat', fiyatEl.value);
+        localStorage.setItem('gidilecekKm', kmEl.value);
+        localStorage.setItem('gidisDonus', gidisDonus);
 
         const hesapKm = gidisDonus ? km * 2 : km;
 
